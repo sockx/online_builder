@@ -1,0 +1,75 @@
+name: Build
+
+on: # 触发工作流程的事件，可以根据您的需求进行配置
+  workflow_dispatch:
+    inputs:  # 定义输入参数
+      repository:  # 仓库地址参数
+        description: 'Repository address'
+        required: true
+        default: ''
+      language:
+        description: 'Project language'
+        required: true
+        default: 'golang'
+        options:
+          - 'java'
+          - 'golang'
+          - 'c'
+          - 'cpp'
+      build_command:  # 编译命令参数
+        description: 'Build command'
+        required: true
+        default: ''
+        options:
+          - 'go build .'
+          - 'mvn clean package -DskipTests'
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest  # 使用的操作系统环境
+
+    steps:
+      - name: Install Build Dependencies
+        run: |
+          if [[ "${{ inputs.language }}" == "java" ]]; then
+            # 安装 Java 编译依赖
+            sudo apt-get update
+            sudo apt-get install -y openjdk-11-jdk maven
+          elif [[ "${{ inputs.language }}" == "golang" ]]; then
+            # 安装 Golang 编译依赖
+            wget -q https://golang.org/dl/go1.17.1.linux-amd64.tar.gz
+            tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz
+            export PATH=$PATH:/usr/local/go/bin
+          elif [[ "${{ inputs.language }}" == "c" ]]; then
+            # 安装 C 编译依赖
+            apt-get install gcc
+          elif [[ "${{ inputs.language }}" == "cpp" ]]; then
+            # 安装 C++ 编译依赖
+            apt-get install g++
+          fi
+
+      - name: 'Clone Remote Repository'
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.inputs.repository }}
+          path: /opt/repository
+
+      - name: Build
+        run: |
+          cd /opt/repository
+          ${{ github.event.inputs.build-command }}
+
+      - name: Find Files
+        id: find-files
+        run: |
+          cd /opt/repository/build
+          find . -type f -name "*-all.jar" -o -name "*.war" -o -name "*.exe" -o -name "*.dll" -o -name "*.so" > filelist.txt
+
+      - name: Publish Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: built-files
+          path: /opt/repository/target
+          if-no-files-found: error
+          continue-on-error: true

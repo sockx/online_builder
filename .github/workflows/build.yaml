@@ -4,18 +4,18 @@ on: # 触发工作流程的事件，可以根据您的需求进行配置
   workflow_dispatch:
     inputs:  # 定义输入参数
       repository:  # 仓库地址参数
-        description: Repository address
+        description: 'Repository address'
         required: true
-        default: ""
+        default: ''
       language:
-        description: Project language
+        description: 'Project language'
         required: true
-        default: golang
+        default: 'golang'
         options:
-          - java
-          - golang
-          - c
-          - cpp
+          - 'java'
+          - 'golang'
+          - 'c'
+          - 'cpp'
       build_command:  # 编译命令参数
         description: 'Build command'
         required: true

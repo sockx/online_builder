@@ -11,6 +11,7 @@ on: # 触发工作流程的事件，可以根据您的需求进行配置
         description: 'Project language'
         required: true
         default: 'golang'
+        type: choice
         options:
           - 'java'
           - 'golang'
@@ -20,6 +21,7 @@ on: # 触发工作流程的事件，可以根据您的需求进行配置
         description: 'Build command'
         required: true
         default: ''
+        type: string
         options:
           - 'go build .'
           - 'mvn clean package -DskipTests'

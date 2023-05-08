@@ -58,12 +58,12 @@ jobs:
       - name: Build
         run: |
           cd /home/runner/work/online_builder/online_builder/rp
-          ${{ github.event.inputs.build-command }}
+          ${{ github.event.inputs.build_command }}
 
       - name: Find Files
         id: find-files
         run: |
-          cd /home/runner/work/online_builder/online_builder/rp/build
+          cd /home/runner/work/online_builder/online_builder/rp/target
           find . -type f -name "*-all.jar" -o -name "*.war" -o -name "*.exe" -o -name "*.dll" -o -name "*.so" > filelist.txt
 
       - name: Publish Artifact

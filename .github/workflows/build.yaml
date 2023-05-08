@@ -4,18 +4,18 @@ on: # 触发工作流程的事件，可以根据您的需求进行配置
   workflow_dispatch:
     inputs:  # 定义输入参数
       repository:  # 仓库地址参数
-        description: 'Repository address'
+        description: Repository address
         required: true
-        default: ''
+        default: ""
       language:
-        description: 'Project language'
+        description: Project language
         required: true
-        default: 'golang'
+        default: golang
         options:
-          - 'java'
-          - 'golang'
-          - 'c'
-          - 'cpp'
+          - java
+          - golang
+          - c
+          - cpp
       build_command:  # 编译命令参数
         description: 'Build command'
         required: true
@@ -53,23 +53,23 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: ${{ github.event.inputs.repository }}
-          path: /opt/repository
+          path: /home/runner/work/rp
 
       - name: Build
         run: |
-          cd /opt/repository
+          cd /home/runner/work/rp
           ${{ github.event.inputs.build-command }}
 
       - name: Find Files
         id: find-files
         run: |
-          cd /opt/repository/build
+          cd /home/runner/work/rp/build
           find . -type f -name "*-all.jar" -o -name "*.war" -o -name "*.exe" -o -name "*.dll" -o -name "*.so" > filelist.txt
 
       - name: Publish Artifact
         uses: actions/upload-artifact@v2
         with:
           name: built-files
-          path: /opt/repository/target
+          path: /home/runner/work/rp
           if-no-files-found: error
           continue-on-error: true

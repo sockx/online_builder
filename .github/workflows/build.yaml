@@ -18,7 +18,7 @@ on: # 触发工作流程的事件，可以根据您的需求进行配置
           - 'c'
           - 'cpp'
       build_command:  # 编译命令参数
-        description: Build command (go build ., mvn clean package -DskipTests)
+        description: Build command (go build . | mvn clean package -DskipTests | 其他编译命令)
         required: true
         default: go build .
         type: string

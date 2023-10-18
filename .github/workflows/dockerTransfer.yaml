@@ -32,9 +32,9 @@ jobs:
       run: docker pull ${{ steps.input.outputs.image_url }}
 
     - name: Tag Docker Image
-      run: docker tag ${{ steps.input.outputs.image_url }} deepper/${{ steps.parse_image_name.outputs.parsed_image_name }}:latest
+      run: docker tag ${{ steps.input.outputs.image_url }} ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:latest
       # 使用解析后的镜像名称生成目标镜像名称，并将其替换为你的 Docker Hub 用户名
 
     - name: Push to Docker Hub
-      run: docker push deepper/${{ steps.parse_image_name.outputs.parsed_image_name }}:latest
+      run: docker push ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:latest
       # 使用解析后的镜像名称生成目标镜像名称，并将其替换为你的 Docker Hub 用户名

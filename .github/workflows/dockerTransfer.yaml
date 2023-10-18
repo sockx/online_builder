@@ -16,7 +16,7 @@ jobs:
     - name: Parse Docker Image Name
       id: parse_image_name
       run: |
-        image_name=$(echo "${{ github.event.inputs.repository }}" | cut -d'/' -f 2-)
+        image_name=$(echo "${{ github.event.inputs.repository }}" | sed 's/[\/.]/-/g; s/:latest//')
         echo "::set-output name=parsed_image_name::$image_name"
       shell: bash
 

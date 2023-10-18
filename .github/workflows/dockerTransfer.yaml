@@ -1,0 +1,40 @@
+name: Transfer Docker Image to Docker Hub
+
+on:
+  workflow_dispatch: # 这允许你手动触发 Workflow
+
+jobs:
+  transfer_image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Input Docker Image URL
+      id: input
+      run: |
+        echo "::set-output name=image_url::${{ github.event.inputs.image_url }}"
+      env:
+        image_url: ${{ github.event.inputs.image_url }}
+
+    - name: Parse Docker Image Name
+      id: parse_image_name
+      run: |
+        image_name=$(echo "${{ steps.input.outputs.image_url }}" | cut -d'/' -f 2-)
+        echo "::set-output name=parsed_image_name::$image_name"
+      shell: bash
+
+    - name: Login to Docker Hub
+      run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+      env:
+        DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+        DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+    - name: Pull from Input Image
+      run: docker pull ${{ steps.input.outputs.image_url }}
+
+    - name: Tag Docker Image
+      run: docker tag ${{ steps.input.outputs.image_url }} deepper/${{ steps.parse_image_name.outputs.parsed_image_name }}:latest
+      # 使用解析后的镜像名称生成目标镜像名称，并将其替换为你的 Docker Hub 用户名
+
+    - name: Push to Docker Hub
+      run: docker push deepper/${{ steps.parse_image_name.outputs.parsed_image_name }}:latest
+      # 使用解析后的镜像名称生成目标镜像名称，并将其替换为你的 Docker Hub 用户名

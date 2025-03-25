@@ -1,10 +1,10 @@
-name: Transfer Docker Image to Docker Hub (with ARM support)
+name: Transfer Multi-Arch Docker Image to Docker Hub
 
 on:
   workflow_dispatch:
     inputs:
       repository:
-        description: 'Repository address'
+        description: 'Source repository address (e.g., ghcr.io/user/image:tag)'
         required: true
       tag:
         description: 'Target tag (defaults to source tag if not specified)'
@@ -44,14 +44,23 @@ jobs:
         DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-    - name: Pull from Input Image (with ARM support)
-      run: docker pull --platform linux/arm64,linux/amd64 ${{ github.event.inputs.repository }}
-
-    - name: Tag Docker Image
+    - name: Pull Images for x86 and ARM
       run: |
-        docker tag ${{ github.event.inputs.repository }} \
-        ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:${{ steps.parse_image_name.outputs.target_tag }}
+        docker pull --platform linux/amd64 ${{ github.event.inputs.repository }}
+        docker tag ${{ github.event.inputs.repository }} ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:amd64
+        
+        docker pull --platform linux/arm64 ${{ github.event.inputs.repository }}
+        docker tag ${{ github.event.inputs.repository }} ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:arm64
 
-    - name: Push to Docker Hub
+    - name: Push Architecture-Specific Images
       run: |
-        docker push ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:${{ steps.parse_image_name.outputs.target_tag }}
+        docker push ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:amd64
+        docker push ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:arm64
+
+    - name: Create and Push Multi-Arch Manifest
+      run: |
+        docker buildx create --use
+        docker buildx imagetools create \
+          --tag ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:${{ steps.parse_image_name.outputs.target_tag }} \
+          ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:amd64 \
+          ${{ secrets.DOCKER_HUB_USER }}/${{ steps.parse_image_name.outputs.parsed_image_name }}:arm64
